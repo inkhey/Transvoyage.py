@@ -116,7 +116,6 @@ def recupTypeArticle() :
 		s=src[9][8].replace("0",mot)
 		listRegex.append(re.compile(s))
 
-	bOk=True
 	with open("./temp") as f:
 		bOk=True
 		for line in f:
@@ -125,6 +124,8 @@ def recupTypeArticle() :
 			for i in range (len(listRegex)) :
 				if listRegex[i].search(line) :
 					typeArticle=dest[0][i]
+					bOk=False
+					break
 	return typeArticle
 	
 #Pour créer l'entête 
