@@ -43,8 +43,8 @@ listSectionFr=["Comprendre","Aller" ,"Circuler"  ,"Voir","Faire","Acheter","Mang
 listSectionEn=["Understand","Get in","Get around","See" ,"Do"   ,"Buy"    ,"Eat"   ,"Drink"                  ,"Sleep"   ,"Go next","Work"           ,"Learn"     ,"Cope"             ,"Stay safe", "Connect"   ]
 
 
-listSectionFr.extend(["Se préparer","Étapes","Autres destination","Lire","Douanes","En taxi","Santé","Monnaie","Villes","Régions"])
-listSectionEn.extend(["Prepare","Route","Other destinations","Read","Customs","By taxi","Stay healthy","Currency","Cities","Regions"])
+listSectionFr.extend(["Se préparer","Étapes","Autres destination","Lire","Douanes","En taxi","Santé","Monnaie","Villes","Régions","Quartiers"])
+listSectionEn.extend(["Prepare","Route","Other destinations","Read","Customs","By taxi","Stay healthy","Currency","Cities","Regions","Districts"])
 
 listSectionFr.extend(['Histoire', 'Paysage', 'Flore et faune',"Climat","Randonnée","Droits d'accès","Activités","Météo","Nature"])
 listSectionEn.extend(['History', 'Landscape', 'Flora and fauna',"Climate","Hiking","Fees/permits","Activities","Weather","Wildlife"])
@@ -57,8 +57,8 @@ listSectionEn.extend(['Budget', 'Mid-range','Mid range', 'Splurge','Hotel','Lodg
 
 # Équivalence image
 
-listImageFr=["[[Fichier:","[[Fichier:","gauche","droite","vignette"]
-listImageEn=["[[Image:","[[File:","left","right","thumb"]
+listImageFr=["[[Fichier:","[[Fichier:","gauche","droite","vignette","vignette"]
+listImageEn=["[[Image:","[[File:","left","right","thumbnail","thumb"]
 
 #Equivalence Listings
 
@@ -90,18 +90,35 @@ listMapEn=["region0name=","region0color=","region0items=","region0description="]
 
 # Tout les regex en string par langue de Destination
 RegSFr=[]
-RegSEn=["(.*)\[\[(Image|File):(.*)\s*$", "(=+)(.*)(=+)(.*)","(.*){{(listing|do|see|buy|eat|drink|sleep)(.*)\s*$","}}(.*)","{{IsPartOf\|(.*)}}\s*$"]
+RegSEn=["(.*)\[\[(Image|File):(.*)\s*$", "(=+)(.*)(=+)(.*)","(.*){{(listing|do|see|buy|eat|drink|sleep)\s(.*)\s*$","(.*)}}\s*$","{{IsPartOf\|(.*)}}\s*$"]
 #               0                                1                                2                                 3           4 
-RegSEn.extend(["^(=+)(.*) to (.*)(=+)\s*$","(.*){{Regionlist(.*)","(.*)region(.*)name=(.*)","{{(outline|usable|guide|stub|star)0}}(.*)"])
-#                         5                  6                        7                                 8
+RegSEn.extend(["^(=+)(.*) to (.*)(=+)\s*$","(.*){{Regionlist(.*)","(.*)region(.*)name=(.*)","{{(outline|usable|guide|stub|star)0}}(.*)","(.*){{Climate(.*)","(.*){{flag|(.*)}}(.*){{Listing(.*)"])
+#                         5                  6                        7                                 8                                9
 
 #Avancement
 avFr="{{Avancement|statut=esquisse|type=0}}\n" 
 avEn="{{outlineO}}\n"
+
+#Equivalence climat
+listMoisFr=["jan","fev","mar","avr","mai","jun","jul","aou","sep","oct","nov","dec"]
+listMoisEn=["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]
+
+listClimatFr=["Climat","description"]
+listClimatEn=["Climate","description"]
+for mois in listMoisFr :
+	listClimatFr.append("tmin-"+mois)
+	listClimatFr.append("tmax-"+mois)
+	listClimatFr.append("prec-"+mois)
+for mois in listMoisEn :
+	listClimatEn.append(mois+"low")
+	listClimatEn.append(mois+"high")
+	listClimatEn.append(mois+"precip")
+
+
 # Trousse à mots par langues
-ListFr=(listTypeFr,listSectionFr,listImageFr,listListingDebFr,listListingFr,listItineraireFr,listDansFr,listMapDebFr,listMapFr,RegSFr,avFr)
-ListEn=(listTypeEn,listSectionEn,listImageEn,listListingDebEn,listListingEn,listItineraireEn,listDansEn,listMapDebEn,listMapEn,RegSEn,avEn)
-#           0         1            2               3           4             5                6              7           8         9    10
+ListFr=(listTypeFr,listSectionFr,listImageFr,listListingDebFr,listListingFr,listItineraireFr,listDansFr,listMapDebFr,listMapFr,RegSFr,avFr,listClimatFr)
+ListEn=(listTypeEn,listSectionEn,listImageEn,listListingDebEn,listListingEn,listItineraireEn,listDansEn,listMapDebEn,listMapEn,RegSEn,avEn,listClimatEn)
+#           0         1            2               3           4             5                6              7           8         9    10  11
 
 #Langue source et destination
 
@@ -116,6 +133,7 @@ def recupTypeArticle() :
 		s=src[9][8].replace("0",mot)
 		listRegex.append(re.compile(s))
 
+	bOk=True
 	with open("./temp") as f:
 		bOk=True
 		for line in f:
@@ -124,8 +142,6 @@ def recupTypeArticle() :
 			for i in range (len(listRegex)) :
 				if listRegex[i].search(line) :
 					typeArticle=dest[0][i]
-					bOk=False
-					break
 	return typeArticle
 	
 #Pour créer l'entête 
@@ -163,7 +179,6 @@ def creationEntete (typeArticle,titre) :
 }}
 """
 	return s
-
 # Pour récupérer les images (et les traduire)
 def recupImage(line) :
 	s=line
@@ -217,7 +232,11 @@ def recupMap(line,numMap) :
 		for i in range (len(src[8])) :
 			s=s.replace(src[8][i],dest[8][i])
 	return s
-	
+def recupClimat(line) :
+	s=line
+	for i in range (len(src[11])):
+		s=s.replace(src[11][i],dest[11][i])
+	return s
 #Programme en lui même
 if len(sys.argv) > 1: # Si on à entrer un nom d'article
 	bAv=False # Pour savoir si la bannière d'avancement à été placé
@@ -236,10 +255,13 @@ if len(sys.argv) > 1: # Si on à entrer un nom d'article
 	regItineraire =re.compile(src[9][5])
 	regMap        =re.compile(src[9][6])
 	regNomRegion  =re.compile(src[9][7])
+	regClimat     =re.compile(src[9][9])
+	regDiplomat   =re.compile(src[9][10])
 	# On ouvre et on lit
 	with open("./temp") as f:
 		numMap=-1
-		bListing=False;
+		bClimat=False
+		bListing=False
 		for line in f:
 			if numMap>-1 :
 				if regNomRegion.search(line) :
@@ -247,10 +269,22 @@ if len(sys.argv) > 1: # Si on à entrer un nom d'article
 				result+=recupMap(line,numMap)
 				if regListingEnd.search(line) :
 					numMap=-1
-			if bListing :
-				result+=recupListing(line,False)
+			if bClimat or regClimat.search(line):
+				result+=recupClimat(line)
+				bClimat=True
 				if regListingEnd.search(line) :
+					bClimat=False
+			elif bListing :
+				s=recupListing(line,False)
+				if regListingEnd.search(line) :					
 					bListing=False
+					if not regListingEnd.search(s) :
+						s+="}}"
+				result+=s
+			elif regDiplomat.search(line) and dest==ListFr :
+				s="* {{Représentation diplomatique"
+				bListing=True
+				result+=s
 			elif regMap.search(line) :
 				numMap=0
 				result+=recupMap(line,numMap)
