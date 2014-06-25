@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #  transvoyage.py
+#  Version 0.2
 #  
 #  Copyright 2014 Guénaël Muller <contact@inkey-art.net>
 #  
@@ -18,20 +19,22 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
-#  
+# 
 #TODO
 # - se conformer à la PEP 8
-# - Version en python seulement.
 # - commentaires et TODO bilingue.
 # - optimisations
-# -	traduction inversé (regex Français)
+# -	traduction inversé amélioré
 # - nouveau langages
 # - debugage de certains regex et autres
+
 
 import sys
 import os
 import subprocess 
 import re
+import urllib
+import argparse
 
 # traductions des types Articles
 
@@ -43,11 +46,11 @@ listSectionFr=["Comprendre","Aller" ,"Circuler"  ,"Voir","Faire","Acheter","Mang
 listSectionEn=["Understand","Get in","Get around","See" ,"Do"   ,"Buy"    ,"Eat"   ,"Drink"                  ,"Sleep"   ,"Go next","Work"           ,"Learn"     ,"Cope"             ,"Stay safe", "Connect"   ]
 
 
-listSectionFr.extend(["Se préparer","Étapes","Autres destination","Lire","Douanes","En taxi","Santé","Monnaie","Villes","Régions","Quartiers"])
-listSectionEn.extend(["Prepare","Route","Other destinations","Read","Customs","By taxi","Stay healthy","Currency","Cities","Regions","Districts"])
+listSectionFr.extend(["Se préparer","Étapes","Autres destination","Lire","Douanes","En taxi","Santé","Monnaie","Villes","Régions","Quartiers","Bureaux d'information touristique"])
+listSectionEn.extend(["Prepare","Route","Other destinations","Read","Customs","By taxi","Stay healthy","Currency","Cities","Regions","Districts","Tourist office"])
 
-listSectionFr.extend(['Histoire', 'Paysage', 'Flore et faune',"Climat","Randonnée","Droits d'accès","Activités","Météo","Nature"])
-listSectionEn.extend(['History', 'Landscape', 'Flora and fauna',"Climate","Hiking","Fees/permits","Activities","Weather","Wildlife"])
+listSectionFr.extend(['Histoire', 'Paysage', 'Flore et faune',"Climat","Randonnée","Droits d'accès","Droits d'accès","Activités","Météo","Nature"])
+listSectionEn.extend(['History', 'Landscape', 'Flora and fauna',"Climate","Hiking","Fees/permits","Fees/Permits","Activities","Weather","Wildlife"])
 
 listSectionFr.extend(['À pied', 'En train', 'En bus',"En avion","En ferry","En bateau","En voiture","En Vélo","En Vélo","En Vélo","En motoneige"])
 listSectionEn.extend(['By foot', 'By train', 'By bus',"By plane","By ferry","By boat","By car","By bicycle","By cycle","By bike","By snowmobile"])
@@ -63,8 +66,8 @@ listImageEn=["[[Image:","[[File:","left","right","thumbnail","thumb"]
 #Equivalence Listings
 
 #titre listings
-listListingDebFr=["Listing","Faire","Voir","Acheter","Manger","Sortir","Se loger"]
-listListingDebEn=["listing","do" ,"see","buy","eat","drink","sleep",]
+listListingDebFr=["Listing","Faire","Voir","Acheter","Manger","Sortir","Se loger","Destination","Aller","Circuler"]
+listListingDebEn=["listing","do" ,"see","buy","eat","drink","sleep","listing","listing","listing"]
 
 #paramètres
 listListingFr=["nom=","adresse=","téléphone","latitude=","longitude=","email=","direction=","numéro gratuit=","fax=","prix=","description=<!-- ","-->}}","arrivée=","départ=","horaire="]
@@ -89,15 +92,18 @@ listMapFr=["nomregion0=","couleurregion0=","elementsregion0=","descriptionregion
 listMapEn=["region0name=","region0color=","region0items=","region0description="]
 
 # Tout les regex en string par langue de Destination
-RegSFr=[]
-RegSEn=["(.*)\[\[(Image|File):(.*)\s*$", "(=+)(.*)(=+)(.*)","(.*){{(listing|do|see|buy|eat|drink|sleep)\s(.*)\s*$","(.*)}}\s*$","{{IsPartOf\|(.*)}}\s*$"]
-#               0                                1                                2                                 3           4 
+RegSFr=["(.*)\[\[(Image|Fichier):(.*)\s*$","(=+)(.*)(=+)(.*)","(.*){{(Listing|Faire|Voir|Acheter|Manger|Boire|Sortir|Se loger|Destination|Aller|Circuler)\s(.*)\s*$","(.*)}}[.\s]*$","{{Dans\|(.*)}}\s*$"]
+#               0                                1                                2                                                            3           4 
+RegSFr.extend(["^(=+)(.*) à (.*)(=+)\s*$","(.*){{ListeRegions(.*)","(.*)region([0-9]+)=(.*)","{{Avancement\|statut=(ébauche|esquisse|utilisable|guide|étoile)\|type=0}}(.*)","(.*){{Climat(.*)","(.*){{Représentation diplomatique"])
+#                         5                  6                        7                                 8                                9                       10
+RegSEn=["(.*)\[\[(Image|File):(.*)\s*$", "(=+)(.*)(=+)(.*)","(.*){{(listing|do|see|buy|eat|drink|sleep)\s(.*)\s*$","(.*)}}[.\s]*$","{{IsPartOf\|(.*)}}\s*$"]
+#               0                                1                                2                                 3               4 
 RegSEn.extend(["^(=+)(.*) to (.*)(=+)\s*$","(.*){{Regionlist(.*)","(.*)region(.*)name=(.*)","{{(outline|usable|guide|stub|star)0}}(.*)","(.*){{Climate(.*)","(.*){{flag|(.*)}}(.*){{Listing(.*)"])
-#                         5                  6                        7                                 8                                9
+#                         5                  6                        7                                 8                                9                       10
 
 #Avancement
 avFr="{{Avancement|statut=esquisse|type=0}}\n" 
-avEn="{{outlineO}}\n"
+avEn="{{outline0}}\n"
 
 #Equivalence climat
 listMoisFr=["jan","fev","mar","avr","mai","jun","jul","aou","sep","oct","nov","dec"]
@@ -119,29 +125,32 @@ for mois in listMoisEn :
 ListFr=(listTypeFr,listSectionFr,listImageFr,listListingDebFr,listListingFr,listItineraireFr,listDansFr,listMapDebFr,listMapFr,RegSFr,avFr,listClimatFr)
 ListEn=(listTypeEn,listSectionEn,listImageEn,listListingDebEn,listListingEn,listItineraireEn,listDansEn,listMapDebEn,listMapEn,RegSEn,avEn,listClimatEn)
 #           0         1            2               3           4             5                6              7           8         9    10  11
-
-#Langue source et destination
+#lien langage/trousse
+ListLang ={"fr":ListFr, "en":ListEn}
+#Langue source et destination et contenu récupérer
 
 src=ListEn
 dest=ListFr
+lang="en"
+content=""
 
 # Pour récupérér le type de l'article (Ville,Itinéraire,Quartier,etc…)
 def recupTypeArticle() :
-	typeArticle = "Ville"
+	typeArticle = dest[0][0]
 	listRegex = list()
 	for mot in src[0] :
 		s=src[9][8].replace("0",mot)
 		listRegex.append(re.compile(s))
 
 	bOk=True
-	with open("./temp") as f:
-		bOk=True
-		for line in f:
-			if (not bOk) :
+	for line in content:
+		if (not bOk) :
+			break
+		for i in range (len(listRegex)) :
+			if listRegex[i].search(line) :
+				typeArticle=dest[0][i]
+				bOk=False
 				break
-			for i in range (len(listRegex)) :
-				if listRegex[i].search(line) :
-					typeArticle=dest[0][i]
 	return typeArticle
 	
 #Pour créer l'entête 
@@ -237,74 +246,96 @@ def recupClimat(line) :
 	for i in range (len(src[11])):
 		s=s.replace(src[11][i],dest[11][i])
 	return s
+
 #Programme en lui même
-if len(sys.argv) > 1: # Si on à entrer un nom d'article
-	bAv=False # Pour savoir si la bannière d'avancement à été placé
-	result="" # Pou stocké le resultat
-	title=sys.argv[1]
-	subprocess.call(["./get.sh", sys.argv[1]]) # programme shell pour récupérer l'article en wikicode
-	# on récupère le type de l'article et on crée l'entête
-	TypeArticle=recupTypeArticle()
-	result        +=creationEntete(TypeArticle,title)
-	# les différents regex
-	regImg        =re.compile(src[9][0])
-	regSection    =re.compile(src[9][1])
-	regListing    =re.compile(src[9][2])
-	regListingEnd =re.compile(src[9][3])
-	regDans       =re.compile(src[9][4])
-	regItineraire =re.compile(src[9][5])
-	regMap        =re.compile(src[9][6])
-	regNomRegion  =re.compile(src[9][7])
-	regClimat     =re.compile(src[9][9])
-	regDiplomat   =re.compile(src[9][10])
-	# On ouvre et on lit
-	with open("./temp") as f:
-		numMap=-1
-		bClimat=False
-		bListing=False
-		for line in f:
-			if numMap>-1 :
-				if regNomRegion.search(line) :
-					numMap=numMap+1
-				result+=recupMap(line,numMap)
-				if regListingEnd.search(line) :
-					numMap=-1
-			if bClimat or regClimat.search(line):
-				result+=recupClimat(line)
-				bClimat=True
-				if regListingEnd.search(line) :
-					bClimat=False
-			elif bListing :
-				s=recupListing(line,False)
-				if regListingEnd.search(line) :					
-					bListing=False
-					if not regListingEnd.search(s) :
-						s+="}}"
-				result+=s
-			elif regDiplomat.search(line) and dest==ListFr :
-				s="* {{Représentation diplomatique"
-				bListing=True
-				result+=s
-			elif regMap.search(line) :
-				numMap=0
-				result+=recupMap(line,numMap)
-			elif regItineraire.search(line) :
-				result+=recupItineraire(line)
-			elif regListing.search(line) :
-				result+=recupListing(line,True)
-				bListing=True
-			elif regImg.search(line) :
-				result+=recupImage(line)
-			elif regSection.search(line) :
-				result+=recupSection(line)
-			elif regDans.search(line) :
-				s=dest[10].replace("0",TypeArticle.lower()) #avancement
-				result+=s
-				bAv=True
-				result+=recupDans(line)
-	if (not bAv) : # Si la bannière avancement n'a toujour pas été placé
-		s=dest[10].replace("0",TypeArticle.lower())
+
+parser = argparse.ArgumentParser()
+parser.add_argument('title',help="nom de la page à convertir" )
+parser.add_argument('--src',help="langage source : fr,en,… par défault fr ")
+parser.add_argument('--dest',help="langage destination : fr,en,… par défault en ")
+parser.add_argument('-d','--debug',action='store_true' ,help="mode debugage : récupération du fichier source en même temps que le résultat")
+args = parser.parse_args()
+bAv=False # Pour savoir si la bannière d'avancement à été placé
+result="" # Pou stocké le resultat
+#arguments
+title=args.title
+if args.src and args.src.lower() in ListLang.keys() :
+	src=ListLang[args.src.lower()]
+	lang=args.src.lower()
+if args.dest and args.dest.lower() in ListLang.keys() :
+	dest=ListLang[args.dest.lower()]
+	
+url="https://"+lang+".wikivoyage.org/w/index.php?title="+title+"&action=raw"
+content=urllib.urlopen(url).readlines()
+# on récupère le type de l'article et on crée l'entête
+TypeArticle=recupTypeArticle()
+result        +=creationEntete(TypeArticle,title)
+# les différents regex
+regImg        =re.compile(src[9][0])
+regSection    =re.compile(src[9][1])
+regListing    =re.compile(src[9][2])
+regListingEnd =re.compile(src[9][3])
+regDans       =re.compile(src[9][4])
+regItineraire =re.compile(src[9][5])
+regMap        =re.compile(src[9][6])
+regNomRegion  =re.compile(src[9][7])
+regClimat     =re.compile(src[9][9])
+regDiplomat   =re.compile(src[9][10])
+# On ouvre et on lit
+i=0
+numMap=-1
+bClimat=False
+bListing=False
+for line in content:
+	i=i+1
+	if numMap>-1 :
+		if regNomRegion.search(line) :
+			numMap=numMap+1
+		result+=recupMap(line,numMap)
+		if regListingEnd.search(line) :
+			numMap=-1
+	if bClimat or regClimat.search(line):
+		result+=recupClimat(line)
+		bClimat=True
+		if regListingEnd.search(line) :
+			bClimat=False
+	elif bListing :
+		s=recupListing(line,False)
+		if regListingEnd.search(line) :					
+			bListing=False
+			if not regListingEnd.search(s) :
+				s+="}}"
 		result+=s
-	print result
-else :
-	print "un nom d'article est nécessaire pour que le script fonctionne"
+	elif regDiplomat.search(line) and dest==ListFr :
+		s="* {{Représentation diplomatique"
+		bListing=True
+		result+=s
+	elif regMap.search(line) :
+		numMap=0
+		result+=recupMap(line,numMap)
+	elif regItineraire.search(line) :
+		result+=recupItineraire(line)
+	elif regListing.search(line) :
+		result+=recupListing(line,True)
+		bListing=True
+	elif regImg.search(line) :
+		result+=recupImage(line)
+	elif regSection.search(line) :
+		result+=recupSection(line)
+	elif regDans.search(line) :
+		s=dest[10].replace("0",TypeArticle.lower()) #avancement
+		result+=s
+		bAv=True
+		result+=recupDans(line)
+if (not bAv) : # Si la bannière avancement n'a toujour pas été placé
+	s=dest[10].replace("0",TypeArticle.lower())
+	result+=s
+
+# On écrit les fichiers
+title=title.replace("/","-")
+title=title.replace(".","-")
+with open("./"+title+".txt", "w") as fichier:
+	fichier.write(result)
+if args.debug is True :
+	with open("./"+title+"_src.txt", "w") as fichier:
+		fichier.writelines(content)
