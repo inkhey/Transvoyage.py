@@ -6,7 +6,7 @@ Version 0 : 24.06.2014
 Version 0.1 : 24.06.2014
 ==================
 
- * Gestion boîte climat et Représentation diplomatique.
+ * Gestion boîte climat et Représentation diplomatique.
  * Résolution de Bugs
 
 Version 0.2 : 25.06.2014
