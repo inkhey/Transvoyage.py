@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #  transvoyage.py
-#  Version 0.2
+#  Version 0.3
 #  
 #  Copyright 2014 Guénaël Muller <contact@inkey-art.net>
 #  
@@ -41,19 +41,22 @@ import argparse
 listTypeFr=('Ville','Région continentale','Région','Pays'   ,'Quartier','Itinéraire','Parc')
 listTypeEn=('city' ,'continent'          ,'region','country','district','itinerary' ,'park')
 
+
 #Equivalences sections
 listSectionFr=["Comprendre","Aller" ,"Circuler"  ,"Voir","Faire","Acheter","Manger","Boire un verre / Sortir","Se loger","Aux environs","Travailler","Apprendre","Gérer le Quotidien","Sécurité","Communiquer"]
 listSectionEn=["Understand","Get in","Get around","See" ,"Do"   ,"Buy"    ,"Eat"   ,"Drink"                  ,"Sleep"   ,"Go next","Work"           ,"Learn"     ,"Cope"             ,"Stay safe", "Connect"   ]
 
+listSectionFr.extend(["Respecter","Parler","Éléctricité"])
+listSectionEn.extend(["Respect","Talk","Electricity"])
 
-listSectionFr.extend(["Se préparer","Étapes","Autres destination","Lire","Douanes","En taxi","Santé","Monnaie","Villes","Régions","Quartiers","Bureaux d'information touristique"])
+listSectionFr.extend(["Se préparer","Étapes","Autres destinations","Lire","Douanes","En taxi","Santé","Monnaie","Villes","Régions","Quartiers","Bureaux d'information touristique"])
 listSectionEn.extend(["Prepare","Route","Other destinations","Read","Customs","By taxi","Stay healthy","Currency","Cities","Regions","Districts","Tourist office"])
 
 listSectionFr.extend(['Histoire', 'Paysage', 'Flore et faune',"Climat","Randonnée","Droits d'accès","Droits d'accès","Activités","Météo","Nature"])
 listSectionEn.extend(['History', 'Landscape', 'Flora and fauna',"Climate","Hiking","Fees/permits","Fees/Permits","Activities","Weather","Wildlife"])
 
-listSectionFr.extend(['À pied', 'En train', 'En bus',"En avion","En ferry","En bateau","En voiture","En Vélo","En Vélo","En Vélo","En motoneige"])
-listSectionEn.extend(['By foot', 'By train', 'By bus',"By plane","By ferry","By boat","By car","By bicycle","By cycle","By bike","By snowmobile"])
+listSectionFr.extend(['À pied', 'En train', 'En bus',"En avion","En ferry","En bateau","En voiture","En vélo","En vélo","En vélo","En motoneige","En stop"])
+listSectionEn.extend(['By foot', 'By train', 'By bus',"By plane","By ferry","By boat","By car","By bicycle","By cycle","By bike","By snowmobile","By thumb"])
 
 listSectionFr.extend(['Bon marché', 'Prix moyen','Prix moyen', 'Luxe','Hôtel','Logements','Dans la nature'])
 listSectionEn.extend(['Budget', 'Mid-range','Mid range', 'Splurge','Hotel','Lodging','Backcountry'])
@@ -106,7 +109,7 @@ avFr="{{Avancement|statut=esquisse|type=0}}\n"
 avEn="{{outline0}}\n"
 
 #Equivalence climat
-listMoisFr=["jan","fev","mar","avr","mai","jun","jul","aou","sep","oct","nov","dec"]
+listMoisFr=["jan","fev","mar","avr","mai","jui","jul","aou","sep","oct","nov","dec"]
 listMoisEn=["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]
 
 listClimatFr=["Climat","description"]
@@ -125,15 +128,18 @@ for mois in listMoisEn :
 ListFr=(listTypeFr,listSectionFr,listImageFr,listListingDebFr,listListingFr,listItineraireFr,listDansFr,listMapDebFr,listMapFr,RegSFr,avFr,listClimatFr)
 ListEn=(listTypeEn,listSectionEn,listImageEn,listListingDebEn,listListingEn,listItineraireEn,listDansEn,listMapDebEn,listMapEn,RegSEn,avEn,listClimatEn)
 #           0         1            2               3           4             5                6              7           8         9    10  11
+
+ListingsSpecialFr={"Villes":"Ville","Autres destinations":"Destinations","Aux environs":"Destinations"}
 #lien langage/trousse
 ListLang ={"fr":ListFr, "en":ListEn}
+
 #Langue source et destination et contenu récupérer
 
 src=ListEn
 dest=ListFr
 lang="en"
 content=""
-
+section=""
 # Pour récupérér le type de l'article (Ville,Itinéraire,Quartier,etc…)
 def recupTypeArticle() :
 	typeArticle = dest[0][0]
@@ -209,7 +215,6 @@ def recupListing(line,debut)	:
 						
 	for i in range (len(src[4])) :
 		s=s.replace(src[4][i],dest[4][i])
-		
 	return s
 	
 #Pour récupérer les sections d'étapes
@@ -232,12 +237,12 @@ def recupMap(line,numMap) :
 	if numMap == 0 :
 		for i in range (len(src[7])) :
 				s=s.replace(src[7][i],dest[7][i])
+	numPrec=str(numMap-1)
+	sNumMap=str(numMap)
+	for i in range (len(src[8])):
+		src[8][i]=src[8][i].replace(numPrec,sNumMap)
+		dest[8][i]=dest[8][i].replace(numPrec,sNumMap)
 	if numMap > 0 :
-		numPrec=str(numMap-1)
-		sNumMap=str(numMap)
-		for i in range (len(src[8])):
-			src[8][i]=src[8][i].replace(numPrec,sNumMap)
-			dest[8][i]=dest[8][i].replace(numPrec,sNumMap)
 		for i in range (len(src[8])) :
 			s=s.replace(src[8][i],dest[8][i])
 	return s
@@ -254,6 +259,8 @@ parser.add_argument('title',help="nom de la page à convertir" )
 parser.add_argument('--src',help="langage source : fr,en,… par défault fr ")
 parser.add_argument('--dest',help="langage destination : fr,en,… par défault en ")
 parser.add_argument('-d','--debug',action='store_true' ,help="mode debugage : récupération du fichier source en même temps que le résultat")
+parser.add_argument('-C','--nocomment',action='store_true' ,help="commentaires désactivé dans le résultat ")
+
 args = parser.parse_args()
 bAv=False # Pour savoir si la bannière d'avancement à été placé
 result="" # Pou stocké le resultat
@@ -293,6 +300,10 @@ for line in content:
 			numMap=numMap+1
 		result+=recupMap(line,numMap)
 		if regListingEnd.search(line) :
+			sNumMap=str(numMap)
+			for i in range (len(src[8])):
+				src[8][i]=src[8][i].replace(sNumMap,"0")
+				dest[8][i]=dest[8][i].replace(sNumMap,"0")
 			numMap=-1
 	if bClimat or regClimat.search(line):
 		result+=recupClimat(line)
@@ -316,12 +327,18 @@ for line in content:
 	elif regItineraire.search(line) :
 		result+=recupItineraire(line)
 	elif regListing.search(line) :
-		result+=recupListing(line,True)
+		s=recupListing(line,True)
+		if dest==ListFr and section in ListingsSpecialFr.keys() :
+			s=s.replace('Listing',ListingsSpecialFr[section])
+		result+=s
 		bListing=True
 	elif regImg.search(line) :
 		result+=recupImage(line)
 	elif regSection.search(line) :
-		result+=recupSection(line)
+		s=recupSection(line)
+		if len(s)>3 and s[2] !="=" :
+			section=s.replace("==","").replace("\n","")
+		result+=s
 	elif regDans.search(line) :
 		s=dest[10].replace("0",TypeArticle.lower()) #avancement
 		result+=s
@@ -330,10 +347,11 @@ for line in content:
 if (not bAv) : # Si la bannière avancement n'a toujour pas été placé
 	s=dest[10].replace("0",TypeArticle.lower())
 	result+=s
-
 # On écrit les fichiers
 title=title.replace("/","-")
 title=title.replace(".","-")
+if args.nocomment is True :
+	result=re.sub(r'<!--(.*)(.|\n)(.*)-->',r'\2',result)
 with open("./"+title+".txt", "w") as fichier:
 	fichier.write(result)
 if args.debug is True :
