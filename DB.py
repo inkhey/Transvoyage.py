@@ -36,11 +36,25 @@ class DB(object):
                     row.pop(lang)
                 self.db[val]=row
 
+    def getList(self):
+        '''get list of elements from source language'''
+        l=[]
+        for row in self.db:
+            if self.langS in self.db[row]:
+                l.append(self.db[row][self.langS])
+        return l
+
+    #def existInList(self,value)
+    #   for elem in self.getList:
+    #        if value.match(
+
     def getTranslation(self,source):
-        '''Get Translation'''
+        '''get translation of a source language element'''
+        source=str(source).replace("\n","")
+        source=source.lower()
         for row in self.db:
             if ( self.langS in self.db[row]
-                  and self.db[row][self.langS].lower() == source.lower()
+                  and self.db[row][self.langS].lower() == source
                   and self.db[row][self.langD] ):
                     return self.db[row][self.langD]
         return False
@@ -48,3 +62,10 @@ class DB(object):
     def __str__(self):
         return str(self.db).replace('},','},\n')
 
+if __name__ == '__main__':
+
+    db = DB('./db/listingparams.csv','en','fr')
+    l = db.getList()
+    print(l)
+    for elem in l:
+        print(db.getTranslation(elem))

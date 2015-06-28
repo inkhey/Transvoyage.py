@@ -173,6 +173,7 @@ class Transvoyage(object):
             if bFile:
                 self.translator=Translator(self.doc,
                     vars(self.args),LOGLEVEL)
+                self.translator.translate()
                 if self.args.output:
                     self.saveFile()
                 else:
