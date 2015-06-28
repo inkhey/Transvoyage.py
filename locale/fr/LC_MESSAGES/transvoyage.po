@@ -1,0 +1,71 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2015-06-28 11:37+CEST\n"
+"PO-Revision-Date: 2015-06-28 11:41+0100\n"
+"Last-Translator: Guenael Muller <contact@inkey-art.net>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 1.6.10\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language: fr\n"
+
+#: transvoyage.py:28
+msgid "usage"
+msgstr "usage"
+
+#: transvoyage.py:30
+msgid "show this help message and exit"
+msgstr "affiche cette aide et termine le programme"
+
+#: transvoyage.py:31
+msgid "error:"
+msgstr "Erreur:"
+
+#: transvoyage.py:33
+msgid "the following arguments are required:"
+msgstr "Les arguments suivant sont requis:"
+
+#: transvoyage.py:35
+msgid "too few arguments"
+msgstr "pas assez d'arguments"
+
+#: transvoyage.py:53
+msgid "title"
+msgstr "titre"
+
+#: transvoyage.py:54
+msgid "name of page to convert"
+msgstr "nom de la page à convertir"
+
+#: transvoyage.py:59
+msgid "use a local path file"
+msgstr "utilisation d'un chemin local"
+
+#: transvoyage.py:70
+msgid "source language : fr,en,…"
+msgstr "langage source : fr,en,… "
+
+#: transvoyage.py:76
+msgid "destination language : fr,en,…"
+msgstr "langage destination : fr,en,…"
+
+#: transvoyage.py:83
+msgid "debug mod : source page available at the same time as result"
+msgstr ""
+"mode debuggage : récupération du fichier source en même temps que le résultat"
+
+#: transvoyage.py:89
+msgid "unable comments in source language in result page."
+msgstr "commentaires désactivés dans le résultat"
+
+#: transvoyage.py:94
+msgid "use proxy to find wikivoyage webpage."
+msgstr "utilisation d'un proxy pour récupérer les pages wikivoyage"
