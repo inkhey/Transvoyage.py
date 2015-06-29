@@ -5,7 +5,8 @@ phone;phone;téléphone
 lat;lat;latitude
 long;long;longitude
 email;email;email
-tollfree;directions;direction
+tollfree;tollfree;"numéro gratuit"
+directions;directions;direction
 fax;fax;fax
 price;price;prix
 content;content;description
