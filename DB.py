@@ -56,12 +56,12 @@ class DB(object):
     def _getTranslationDB(self,source,db):
         '''get translation of a source language element'''
 
-        source=str(source).replace("\n","")
+        source=str(source).strip()
         source=source.lower()
         for row in db:
-            if ( self.langS in db[row]
-                  and db[row][self.langS].lower() == source
-                  and db[row][self.langD] ):
+            if self.langS in db[row]:
+                if( db[row][self.langS].lower() == source
+                and db[row][self.langD] ):
                     return db[row][self.langD]
         return False
     def getTranslation(self,source):
@@ -86,7 +86,7 @@ class DBnumber(DB):
 
     def getTranslation(self,source):
         '''get translation of a source language element'''
-        source=str(source).replace("\n","")
+        source=str(source).strip()
         source=source.lower()
         for row in self.db:
             if ( self.langS in self.db[row]):
@@ -134,7 +134,7 @@ class DBDouble(DB):
         return l
     def getTranslation(self,source):
         '''get translation of a source language element'''
-        source=str(source).replace("\n","")
+        source=str(source).strip()
         source=source.lower()
         for row in self.db:
             if self.langS in self.db[row]:
@@ -172,6 +172,7 @@ class DBDouble(DB):
 
 
 if __name__ == '__main__':
+
     print("====DB====")
     print("\n##init\n")
     db = DB('./db/listingparams.csv','en','fr',logging.DEBUG)

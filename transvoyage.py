@@ -147,7 +147,7 @@ class Transvoyage(object):
             opener = urllib.request.build_opener(proxy_handler)
         # try download file
         try:
-            self.doc = urllib.request.build_opener().open(url).read()
+            self.doc = urllib.request.build_opener().open(url).read().decode("utf-8")
         except:
             self.logger.error(_("Failed to download wikivoyage webpage."))
             return False
