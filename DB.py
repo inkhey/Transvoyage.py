@@ -25,12 +25,15 @@ class DB(object):
         self.langS=langS
         self.langD=langD
         self._initDB(filename,self.db)
+        self.logger.info("init DB ok")
+
 
     def _initDB(self,filename,db):
+        '''initialise DB'''
         with open(filename) as csvfile:
             reader = csv.DictReader(csvfile,delimiter=';')
             for row in reader:
-                self.logger.debug(row)
+                self.logger.debug("read row-before :\t"+str(row))
                 val=row['globalref']
                 row.pop('globalref')
                 #drop useless lang data
@@ -38,6 +41,8 @@ class DB(object):
                 delLang = [lang for lang in row if lang not in listLang]
                 for lang in delLang:
                     row.pop(lang)
+                self.logger.debug("read row-after :\t"+str(row))
+                #store data
                 db[val]=row
 
     def getList(self):
@@ -87,15 +92,22 @@ class DBnumber(DB):
             if ( self.langS in self.db[row]):
                 tmpLangS = self.db[row][self.langS].lower()
                 tmpLangS = tmpLangS.replace('[n]','(?P<number>[0-9]+)')
+                self.logger.debug("tmpLangS:\t"+tmpLangS)
+                self.logger.debug("source:\t"+source)
                 if tmpLangS:
                     test = re.match(tmpLangS,source)
+                    self.logger.debug("test:\t"+str(bool(test)))
                     if test:
                         #get [n] value ?
                         number=""
                         if "[n]" in self.db[row][self.langS]:
                             number=test.group('number')
+                            self.logger.debug("number:\t"+number)
                         if self.db[row][self.langD]:
-                            dest = self.db[row][self.langD].replace('[n]',number)
+                            dest = self.db[row][self.langD]
+                            self.logger.debug("dest-before:\t"+dest)
+                            dest = dest.replace('[n]',number)
+                            self.logger.debug("dest-after:\t"+dest)
                             return dest
         return False
 
@@ -108,6 +120,8 @@ class DBDouble(DB):
         self.nameParam=nameParam
         self.db2={}
         self._initDB(filename2,self.db2)
+        self.logger.info("init DBDouble ok")
+
 
     def getList(self):
         '''get list of elements from source language'''
@@ -158,10 +172,9 @@ class DBDouble(DB):
 
 
 if __name__ == '__main__':
-
     print("====DB====")
-
-    db = DB('./db/listingparams.csv','en','fr')
+    print("\n##init\n")
+    db = DB('./db/listingparams.csv','en','fr',logging.DEBUG)
     print("\n##getList\n")
     l = db.getList()
     print(l)
@@ -173,8 +186,9 @@ if __name__ == '__main__':
     print("\n\n\n")
 
     print("====DBDNumber====")
+    print("\n##init\n")
+    db = DBnumber('./db/specialModule/Map/mapparams.csv','en','fr',logging.DEBUG)
     print("\n##getList\n")
-    db = DBnumber('./db/specialModule/Map/mapparams.csv','en','fr')
     l = db.getList()
     print(l)
     print("\n##translations of region12description\n")
@@ -186,6 +200,7 @@ if __name__ == '__main__':
     print("\n\n\n")
 
     print("====DBDouble====")
+    print("\n##init\n")
     db = DBDouble('./db/specialModule/Climate/arg.csv',
         './db/specialModule/Climate/month.csv','en','fr','m',logging.DEBUG)
     print("\n##getList\n")
