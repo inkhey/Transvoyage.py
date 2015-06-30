@@ -75,13 +75,13 @@ class Translator(object):
         # Translation
         for element in self.text.filter_templates(recursive=True):
             # listings
-            if element.name.matches(dbList):
+            if  element.name.lower().strip() in dbList:
                 trans = db.getTranslation(element.name)
                 if trans:
                     element.name = trans
                 # params
                 for param in element.params:
-                    if param.name.matches(argList):
+                    if  param.name.lower().strip() in argList:
                         trans = argdb.getTranslation(param.name)
                         if trans:
                             param.name = trans
@@ -99,6 +99,7 @@ class Translator(object):
                 self.rmList.append(element)
 
     def _re__list_match(self, elem, l):
+        elem=elem.strip().lower()
         for pattern in l:
             if pattern and re.match(pattern, elem):
                 return True
@@ -180,7 +181,9 @@ if __name__ == '__main__':
 |region6color=#aa6baa
 |region6items=''Steglitz, Zehlendorf, Tempelhof, Neukölln, Treptow, Köpenick''
 |region6description=The South is a mixed bag of different boroughs. Zehlendorf is one of the greenest and wealthiest boroughs in Berlin, while Neukölln is one of the city's poorest. However at least the Northern part of Neukölln (sometimes labeled "Kreuzkölln") is becoming more and more gentrified. Köpenick's swaths of forest around Berlin's largest lake, Müggelsee, and the nice old town of Köpenick itself beg to be discovered on bikes and using the S-Bahn.}}"""
+
+    string3="{{IsPartOf|Germany}}"
     args = {'src': 'en', 'dest': 'fr'}
-    t = Translator(string, args)
+    t = Translator(string3, args,logging.DEBUG)
     t.translate()
     print(t)
