@@ -1,15 +1,15 @@
-globalref;en;fr
-name;name;nom
-address;address;adresse
-phone;phone;téléphone
-lat;lat;latitude
-long;long;longitude
-email;email;email
-tollfree;tollfree;"numéro gratuit"
-directions;directions;direction
-fax;fax;fax
-price;price;prix
-content;content;description
-checkin;checkin;arrivée
-checkout;checkout;départ
-hours;hours;horaire
+globalref,en,fr
+name,name,nom
+address,address,adresse
+phone,phone,téléphone
+lat,lat,latitude
+long,long,longitude
+email,email,email
+tollfree,tollfree,"numéro gratuit"
+directions,directions,direction
+fax,fax,fax
+price,price,prix
+content,content,description
+checkin,checkin,arrivée
+checkout,checkout,départ
+hours,hours,horaire

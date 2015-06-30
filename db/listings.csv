@@ -1,15 +1,15 @@
-globalref;en;fr
-listing;listing;Listing
-do;do;Faire
-see;see;Voir
-buy;buy;Acheter
-eat;eat;Manger
-drink;drink;Sortir
-sleep;sleep;Se loger
-destination;;Destination
-go;;Aller
-goaround;;Circuler
-embassy;embassy;"Représentation diplomatique"
-ispartof;IsPartOf;Dans
-regionlist;Regionlist;ListeRegions
-climate;Climate;Climat
+globalref,en,fr
+listing,listing,Listing
+do,do,Faire
+see,see,Voir
+buy,buy,Acheter
+eat,eat,Manger
+drink,drink,Sortir
+sleep,sleep,Se loger
+destination,,Destination
+go,,Aller
+goaround,,Circuler
+embassy,embassy,"Représentation diplomatique"
+ispartof,IsPartOf,Dans
+regionlist,Regionlist,ListeRegions
+climate,Climate,Climat

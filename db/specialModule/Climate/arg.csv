@@ -1,4 +1,4 @@
-globalref;en;fr
-low;[m]low;tmin-[m]
-high;[m]high;tmax-[m]
-precip;[m]precip;prec-[m]
+globalref,en,fr
+low,[m]low,tmin-[m]
+high,[m]high,tmax-[m]
+precip,[m]precip,prec-[m]

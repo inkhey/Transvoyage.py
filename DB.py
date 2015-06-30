@@ -32,7 +32,7 @@ class DB(object):
     def _initDB(self, filename, db):
         '''initialise DB'''
         with open(filename) as csvfile:
-            reader = csv.DictReader(csvfile, delimiter=';')
+            reader = csv.DictReader(csvfile, delimiter=',')
             for row in reader:
                 self.logger.debug("read row-before :\t" + str(row))
                 val = row['globalref']
