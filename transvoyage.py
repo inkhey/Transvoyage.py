@@ -21,7 +21,7 @@ import re
 # translate
 import locale
 import gettext
-#settings
+# settings
 from setting import *
 from translator import Translator
 # other
@@ -29,6 +29,8 @@ import logging
 logging.basicConfig()
 
 # init translation
+
+
 def initTranslation():
     ''' init Translation with gettext'''
 
@@ -61,7 +63,6 @@ import argparse
 class Transvoyage(object):
 
     "CLI interface of Transvoyage.py"
-
 
     def readCli(self):
         '''CLI:Argument parser'''
@@ -97,9 +98,9 @@ class Transvoyage(object):
         )
         parser.add_argument(
             '-C',
-            '--nocomment',
+            '--comment',
             action='store_true',
-            help=_("unable comments in source language in result page.")
+            help=_("comments in source language in result page.")
         )
         parser.add_argument(
             '-o',
@@ -147,7 +148,8 @@ class Transvoyage(object):
             opener = urllib.request.build_opener(proxy_handler)
         # try download file
         try:
-            self.doc = urllib.request.build_opener().open(url).read().decode("utf-8")
+            self.doc = urllib.request.build_opener().open(
+                url).read().decode("utf-8")
         except:
             self.logger.error(_("Failed to download wikivoyage webpage."))
             return False
@@ -157,7 +159,7 @@ class Transvoyage(object):
         ''' Obtain wikivoyage file from local file'''
         pass
 
-    def __init__(self,logLevel=LOGLEVEL):
+    def __init__(self, logLevel=LOGLEVEL):
         ''' Launch CLI'''
 
         self.logger = logging.getLogger("Transvoyage")
@@ -171,27 +173,27 @@ class Transvoyage(object):
                 bFile = self.getFilebByUrl()
 
             if bFile:
-                self.translator=Translator(self.doc,
-                    vars(self.args),LOGLEVEL)
+                self.translator = Translator(self.doc,
+                                             vars(self.args), LOGLEVEL)
                 self.translator.translate()
                 if self.args.output:
                     self.saveFile()
                 else:
                     print(self.__str__())
             else:
-                print (_("No file"))
+                print(_("No file"))
 
     def __str__(self):
         '''Print text'''
 
         if self.translator:
             return str(self.translator)
-        else :
+        else:
             return _("No file")
 
     def saveFile(self):
 
-        with open("./"+self.args.title+".txt", "w") as doc:
+        with open("./" + self.args.title + ".txt", "w") as doc:
             doc.write(self.__str__())
 
 

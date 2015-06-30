@@ -8,29 +8,119 @@
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 3 of the License, or
 #  (at your option) any later version.
-from DB import DB,DBnumber,DBDouble
+from DB import DB, DBnumber, DBDouble
 import logging
 import setting
 import mwparserfromhell
 import re
 logging.basicConfig()
 
+
 class Translator(object):
+
     """Translation of file"""
 
-    def __init__(self,content,args,logLevel=setting.LOGLEVEL):
+    def __init__(self, content, args, logLevel=setting.LOGLEVEL):
         self.logger = logging.getLogger("Translator")
-        self.logLevel=logLevel
+        self.logLevel = logLevel
         self.logger.setLevel(logLevel)
-        self.args=args
-        content=self.preformat(content)
-        self.text=mwparserfromhell.parse(content,skip_style_tags=True)
-        self.rmList=[]
+        self.args = args
+        content = self.preformat(content)
+        self.text = mwparserfromhell.parse(content, skip_style_tags=True)
+        self.rmList = []
+
+    def preformat(self, text):
+        csv = './db/preformat.csv'
+        db = DB(csv, self.args['src'], self.args['dest'], self.logLevel)
+        for elem in db.getList():
+            trans = db.getTranslation(elem)
+            if trans:
+                text = re.sub(elem, trans, text)
+        return text
+    # translate
+
+    def translate(self):
+        self.transHeadings()
+        self.transListings()
+        self.clean()
+    # Translate
+
+    def transType(self):
+        pass
+
+    def transListings(self):
+        '''Translate listing'''
+        # Listing DB
+        csv = './db/listings.csv'
+        db = DB(csv, self.args['src'], self.args['dest'], self.logLevel)
+        dbList = db.getList()
+        # Listignarg DB
+        csv = './db/listingparams.csv'
+        argdb = DB(csv, self.args['src'], self.args['dest'], self.logLevel)
+        argList = argdb.getList()
+        # Map params DB
+        csv = './db//specialModule/Map/mapparams.csv'
+        mapdb = DBnumber(
+            csv, self.args['src'], self.args['dest'], self.logLevel)
+        mapList = mapdb.getList()
+        # Climate params DB
+        csv = './db/specialModule/Climate/arg.csv'
+        csv2 = './db//specialModule/Climate/month.csv'
+        climatedb = DBDouble(
+            csv, csv2, self.args['src'], self.args['dest'], 'm', self.logLevel)
+        climateList = climatedb.getList()
+        # type DB
+        csv = './db/specialModule/Climate/arg.csv'
+        csv2 = './db//specialModule/Climate/month.csv'
+        # Translation
+        for element in self.text.filter_templates(recursive=True):
+            # listings
+            if element.name.matches(dbList):
+                trans = db.getTranslation(element.name)
+                if trans:
+                    element.name = trans
+                # params
+                for param in element.params:
+                    if param.name.matches(argList):
+                        trans = argdb.getTranslation(param.name)
+                        if trans:
+                            param.name = trans
+                    elif self._re__list_match(str(param.name), mapList):
+                        trans = mapdb.getTranslation(param.name)
+                        if trans:
+                            param.name = trans
+                    elif self._re__list_match(str(param.name), climateList):
+                        trans = climatedb.getTranslation(param.name)
+                        if trans:
+                            param.name = trans
+                    else:
+                        self.rmList.append(param)
+            else:
+                self.rmList.append(element)
+
+    def _re__list_match(self, elem, l):
+        for pattern in l:
+            if pattern and re.match(pattern, elem):
+                return True
+        return False
+
+    def transHeadings(self):
+        '''Translate headings'''
+        # init DB
+        csv = './db/headings.csv'
+        db = DB(csv, self.args['src'], self.args['dest'], self.logLevel)
+        dbList = db.getList()
+        for element in self.text.filter_headings(recursive=False):
+            if element.title.matches(dbList):
+                trans = db.getTranslation(element.title)
+                if trans:
+                    element.title = trans
+    # postFormat
 
     def clean(self):
         for node in self.text.nodes:
             if isinstance(node, mwparserfromhell.nodes.Text):
-                node.value="\n"
+                node.value = "\n"
             if isinstance(node, mwparserfromhell.nodes.Wikilink):
                 self.rmList.append(node)
             if isinstance(node, mwparserfromhell.nodes.Wikilink):
@@ -42,98 +132,20 @@ class Translator(object):
             if isinstance(node, mwparserfromhell.nodes.HTMLEntity):
                 self.rmList.append(node)
         for node in self.rmList:
-            self.text=str(self.text).replace(str(node),"")
+            self.text = str(self.text).replace(str(node), "")
+        self.text = mwparserfromhell.parse(self.text)
 
-    def preformat(self,text):
-        csv = './db/preformat.csv'
-        db = DB(csv,self.args['src'],self.args['dest'],self.logLevel)
-        for elem in db.getList():
-            trans = db.getTranslation(elem)
-            if trans:
-                text=re.sub(elem,trans,text)
-        return text
-
-    def translate(self):
-        self.transHeadings()
-        self.transListings()
-        self.clean()
-
-    def transType(self):
-        pass
-
-    def transListings(self):
-        '''Translate listing'''
-        #Listing DB
-        csv = './db/listings.csv'
-        db = DB(csv,self.args['src'],self.args['dest'],self.logLevel)
-        dbList = db.getList()
-        #Listignarg DB
-        csv = './db/listingparams.csv'
-        argdb = DB(csv,self.args['src'],self.args['dest'],self.logLevel)
-        argList = argdb.getList()
-        #Map params DB
-        csv = './db//specialModule/Map/mapparams.csv'
-        mapdb = DBnumber(csv,self.args['src'],self.args['dest'],self.logLevel)
-        mapList = mapdb.getList()
-        #Climate params DB
-        csv = './db/specialModule/Climate/arg.csv'
-        csv2 = './db//specialModule/Climate/month.csv'
-        climatedb = DBDouble(csv,csv2,self.args['src'],self.args['dest'],'m',self.logLevel)
-        climateList = climatedb.getList()
-        #Translation
-        for element in self.text.filter_templates(recursive=True):
-            #listings
-            if element.name.matches(dbList):
-                trans = db.getTranslation(element.name)
-                if trans:
-                    element.name = trans
-                #params
-                for param in element.params:
-                    if param.name.matches(argList):
-                        trans = argdb.getTranslation(param.name)
-                        if trans:
-                            param.name=trans
-                    elif self._re__list_match(str(param.name),mapList):
-                        trans = mapdb.getTranslation(param.name)
-                        if trans:
-                            param.name=trans
-                    elif  self._re__list_match(str(param.name),climateList):
-                        trans = climatedb.getTranslation(param.name)
-                        if trans:
-                            param.name=trans
-                    else:
-                        self.rmList.append(param)
-            else:
-                self.rmList.append(element)
-
-    def _re__list_match(self,elem,l):
-        for pattern in l:
-            if pattern and re.match(pattern,elem):
-                return True
-        return False
-
-    def transHeadings(self):
-        '''Translate headings'''
-        #init DB
-        csv = './db/headings.csv'
-        db = DB(csv,self.args['src'],self.args['dest'],self.logLevel)
-        dbList = db.getList()
-        for element in self.text.filter_headings(recursive=False):
-            if element.title.matches(dbList):
-                trans = db.getTranslation(element.title)
-                if trans:
-                    element.title = trans
-
-    def transStatus(self):
+    def addHeader(self):
         pass
 
     def __str__(self):
-        ret=str(self.text)
-        ret=re.sub("(\n+)","\n",ret)
+        ret = str(self.text)
+        ret = re.sub("(\n+)", "\n", ret)
         return ret
 
 if __name__ == '__main__':
-    string="""* {{flag|Zimbabwe}} {{listing
+
+    string = """* {{flag|Zimbabwe}} {{listing
     | name=Zimbabwe | url= | email=
     | address=Axel-Springer-Straße 54a/Kommundantenstr. 80 | lat= | long= | directions=
     | phone=+49 30 206 2263 | tollfree= | fax=
@@ -141,7 +153,7 @@ if __name__ == '__main__':
     | content=
     }}
     |}"""
-    string2="""{{regionlist|carte=berlin_map_new.png
+    string2 = """{{regionlist|carte=berlin_map_new.png
 |taillecarte=450px
 |carte=Districts of Berlin
 |region1name=[[Berlin/Mitte|Mitte]]
@@ -168,7 +180,7 @@ if __name__ == '__main__':
 |region6color=#aa6baa
 |region6items=''Steglitz, Zehlendorf, Tempelhof, Neukölln, Treptow, Köpenick''
 |region6description=The South is a mixed bag of different boroughs. Zehlendorf is one of the greenest and wealthiest boroughs in Berlin, while Neukölln is one of the city's poorest. However at least the Northern part of Neukölln (sometimes labeled "Kreuzkölln") is becoming more and more gentrified. Köpenick's swaths of forest around Berlin's largest lake, Müggelsee, and the nice old town of Köpenick itself beg to be discovered on bikes and using the S-Bahn.}}"""
-    args={'src':'en','dest':'fr'}
-    t= Translator(string,args)
+    args = {'src': 'en', 'dest': 'fr'}
+    t = Translator(string, args)
     t.translate()
     print(t)
