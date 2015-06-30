@@ -1,7 +1,7 @@
 Version 0 : 24.06.2014
 ==================
- * 1ére version 
- 
+ * 1ére version
+
 
 Version 0.1 : 24.06.2014
 ==================
@@ -13,8 +13,17 @@ Version 0.2 : 25.06.2014
 ==================
 
  * Version python uniquement , le script bash n'est plus utile.
- * Retour du résultat dans un fichier 
+ * Retour du résultat dans un fichier
  * Gestions des arguments de langage source et destination ainsi que du debug mode
  * Regex français (possibilité de traduction de français à anglais en mode beta)
  * Résolution de Bugs
  * Création d'un Changelog en français
+
+
+Version 0.6 : 30.06.2015
+==================
+
+ * Refonte complète du programme en orienté objet et python 3
+ * support plus facile d'autres langues (fichier csv et texte)
+ * internationalisation du programme
+ * perte de quelques fonctionnalités pour le moment (images,entête)
